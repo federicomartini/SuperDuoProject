@@ -12,6 +12,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,16 +34,42 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     private CharSequence title;
     public static boolean IS_TABLET = false;
     private BroadcastReceiver messageReciever;
+    private String mEan;
 
     public static final String MESSAGE_EVENT = "MESSAGE_EVENT";
     public static final String MESSAGE_KEY = "MESSAGE_EXTRA";
+
+    public static final String ABOUT_FRAGMENT = "ABOUT_FRAGMENT";
+    public static final String ADD_BOOK_FRAGMENT = "ADD_BOOK_FRAGMENT";
+    public static final String BOOKS_LIST_FRAGMENT = "BOOKS_LIST_FRAGMENT";
+    public static final String BOOKS_DETAIL_FRAGMENT = "BOOK_DETAIL_FRAGMENT";
+    public static final String LOG_TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         IS_TABLET = isTablet();
+
         if(IS_TABLET){
             setContentView(R.layout.activity_main_tablet);
+            //If rotating from Portrait to Land
+            if (savedInstanceState != null && findViewById(R.id.right_container) != null) {
+                mEan = savedInstanceState.getString("EAN");
+                if(mEan != null) {
+                    getSupportFragmentManager().popBackStack(BOOKS_DETAIL_FRAGMENT, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    Bundle args = new Bundle();
+                    args.putString(BookDetail.EAN_KEY, mEan);
+
+                    BookDetail fragmentBookDetail = new BookDetail();
+                    fragmentBookDetail.setArguments(args);
+
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.right_container, fragmentBookDetail, BOOKS_DETAIL_FRAGMENT)
+                            .addToBackStack(BOOKS_DETAIL_FRAGMENT)
+                            .commit();
+                }
+
+            }
         }else {
             setContentView(R.layout.activity_main);
         }
@@ -57,7 +84,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
         // Set up the drawer.
         navigationDrawerFragment.setUp(R.id.navigation_drawer,
-                    (DrawerLayout) findViewById(R.id.drawer_layout));
+                (DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
     @Override
@@ -65,25 +92,35 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment nextFragment;
+        String fragmentTag;
 
         switch (position){
             default:
-            case 0:
+                fragmentTag = BOOKS_LIST_FRAGMENT;
                 nextFragment = new ListOfBooks();
+                mEan=null;
                 break;
             case 1:
+                fragmentTag = ADD_BOOK_FRAGMENT;
                 nextFragment = new AddBook();
+                mEan=null;
                 break;
             case 2:
+                fragmentTag = ABOUT_FRAGMENT;
                 nextFragment = new About();
+                mEan=null;
                 break;
 
         }
 
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, nextFragment)
-                .addToBackStack((String) title)
-                .commit();
+        if (!fragmentManager.popBackStackImmediate(fragmentTag, 0)) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, nextFragment, fragmentTag)
+                    .addToBackStack(fragmentTag)
+                    .commit();
+        }
+
+        Log.d(LOG_TAG, "Back Stack Count: " + getSupportFragmentManager().getBackStackEntryCount());
     }
 
     public void setTitle(int titleId) {
@@ -135,6 +172,8 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     @Override
     public void onItemSelected(String ean) {
         Bundle args = new Bundle();
+
+        mEan = ean;
         args.putString(BookDetail.EAN_KEY, ean);
 
         BookDetail fragment = new BookDetail();
@@ -145,8 +184,8 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             id = R.id.right_container;
         }
         getSupportFragmentManager().beginTransaction()
-                .replace(id, fragment)
-                .addToBackStack("Book Detail")
+                .replace(id, fragment, BOOKS_DETAIL_FRAGMENT)
+                .addToBackStack(BOOKS_DETAIL_FRAGMENT)
                 .commit();
 
     }
@@ -158,6 +197,11 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
                 Toast.makeText(MainActivity.this, intent.getStringExtra(MESSAGE_KEY), Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("EAN", mEan);
     }
 
     public void goBack(View view){

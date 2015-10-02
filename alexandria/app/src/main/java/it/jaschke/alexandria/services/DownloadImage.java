@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 import java.io.InputStream;
@@ -16,6 +17,11 @@ public class DownloadImage extends AsyncTask<String, Void, Bitmap> {
 
     public DownloadImage(ImageView bmImage) {
         this.bmImage = bmImage;
+    }
+
+    protected void onPreExecute() {
+        if (bmImage != null)
+            bmImage.setVisibility(View.INVISIBLE);
     }
 
     protected Bitmap doInBackground(String... urls) {
@@ -32,7 +38,11 @@ public class DownloadImage extends AsyncTask<String, Void, Bitmap> {
     }
 
     protected void onPostExecute(Bitmap result) {
-        bmImage.setImageBitmap(result);
+        if (result != null && bmImage != null) {
+            bmImage.setVisibility(View.VISIBLE);
+            bmImage.setImageBitmap(result);
+        }
+
     }
 }
 

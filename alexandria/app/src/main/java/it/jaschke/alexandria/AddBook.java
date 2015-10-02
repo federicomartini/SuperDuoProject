@@ -10,6 +10,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,13 +21,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import it.jaschke.alexandria.BarCodeReader.BarCodeScannerActivity;
 import it.jaschke.alexandria.data.AlexandriaContract;
 import it.jaschke.alexandria.services.BookService;
 import it.jaschke.alexandria.services.DownloadImage;
 
 
 public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String TAG = "INTENT_TO_SCAN_ACTIVITY";
+
+    private static final String LOG_TAG = "AddBook";
+    private static final int PICK_BAR_CODE_REQUEST = 1;
+
     private EditText ean;
     private final int LOADER_ID = 1;
     private View rootView;
@@ -73,11 +78,14 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 //catch isbn10 numbers
                 if(ean.length()==10 && !ean.startsWith("978")){
                     ean="978"+ean;
+                    ean=setControlNumberIsbn13(ean);
                 }
+
                 if(ean.length()<13){
                     clearFields();
                     return;
                 }
+
                 //Once we have an ISBN, start a book intent
                 Intent bookIntent = new Intent(getActivity(), BookService.class);
                 bookIntent.putExtra(BookService.EAN, ean);
@@ -96,12 +104,15 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 // Hint: Use a Try/Catch block to handle the Intent dispatch gracefully, if you
                 // are using an external app.
                 //when you're done, remove the toast below.
-                Context context = getActivity();
-                CharSequence text = "This button should let you scan a book for its barcode!";
-                int duration = Toast.LENGTH_SHORT;
+//                Context context = getActivity();
+//                CharSequence text = "This button should let you scan a book for its barcode!";
+//                int duration = Toast.LENGTH_SHORT;
+//
+//                Toast toast = Toast.makeText(context, text, duration);
+//                toast.show();
 
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
+                Intent barCodeIntent = new Intent(getActivity(), BarCodeScannerActivity.class);
+                startActivityForResult(barCodeIntent, PICK_BAR_CODE_REQUEST);
 
             }
         });
@@ -144,7 +155,11 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         String eanStr= ean.getText().toString();
         if(eanStr.length()==10 && !eanStr.startsWith("978")){
             eanStr="978"+eanStr;
+            eanStr=setControlNumberIsbn13(eanStr);
         }
+
+        Log.d(LOG_TAG, "onCreateLoader EAN: " + eanStr);
+
         return new CursorLoader(
                 getActivity(),
                 AlexandriaContract.BookEntry.buildFullBookUri(Long.parseLong(eanStr)),
@@ -168,7 +183,8 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         ((TextView) rootView.findViewById(R.id.bookSubTitle)).setText(bookSubTitle);
 
         String authors = data.getString(data.getColumnIndex(AlexandriaContract.AuthorEntry.AUTHOR));
-        if (authors != null && authors.length() > 1) {
+
+        if (authors != null && authors.length() > 0) {
             String[] authorsArr = authors.split(",");
             ((TextView) rootView.findViewById(R.id.authors)).setLines(authorsArr.length);
             ((TextView) rootView.findViewById(R.id.authors)).setText(authors.replace(",","\n"));
@@ -178,6 +194,8 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         if(Patterns.WEB_URL.matcher(imgUrl).matches()){
             new DownloadImage((ImageView) rootView.findViewById(R.id.bookCover)).execute(imgUrl);
             rootView.findViewById(R.id.bookCover).setVisibility(View.VISIBLE);
+        } else {
+            rootView.findViewById(R.id.bookCover).setVisibility(View.INVISIBLE);
         }
 
         String categories = data.getString(data.getColumnIndex(AlexandriaContract.CategoryEntry.CATEGORY));
@@ -190,6 +208,38 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     @Override
     public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
 
+    }
+
+
+    private String setControlNumberIsbn13(String ean) {
+
+        if(ean.length() == 13) {
+            ean=ean.substring(0, 12);
+            int num;
+            int controlNum = 0;
+            boolean even = true;
+            for(int i=0; i<12; i++) {
+                num = Integer.parseInt(Character.toString(ean.charAt(i)));
+                if(even) {
+                    controlNum += num;
+                }
+                else {
+                    controlNum += num * 3;
+                }
+
+                if(even)
+                    even = false;
+                else
+                    even = true;
+            }
+
+            controlNum = 10 - (controlNum % 10);
+            controlNum = (controlNum == 10) ? 0 : controlNum;
+
+            ean = ean + String.valueOf(controlNum);
+        }
+
+        return ean;
     }
 
     private void clearFields(){
@@ -206,5 +256,44 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         activity.setTitle(R.string.scan);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == PICK_BAR_CODE_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == Activity.RESULT_OK) {
+                String scanResults = data.getStringExtra("SCAN_RESULT_INTENT");
+                String barCode = data.getStringExtra("BAR_CODE_INTENT");
+
+                Log.d(LOG_TAG, "SCAN RESULTS: " + scanResults);
+                Log.d(LOG_TAG, "Bar Code: " + barCode);
+
+                //catch isbn10 numbers
+                if(scanResults.length()==10 && !scanResults.startsWith("978")){
+                    scanResults="978"+scanResults;
+                    scanResults=setControlNumberIsbn13(scanResults);
+                    ean.setText(scanResults);
+                    Log.d(LOG_TAG, "EAN: " + scanResults);
+                }
+
+                if(scanResults.length() < 13){
+                    clearFields();
+                    return;
+                }
+
+                //Once we have an ISBN, start a book intent
+                Intent bookIntent = new Intent(getActivity(), BookService.class);
+                bookIntent.putExtra(BookService.EAN, scanResults);
+                bookIntent.setAction(BookService.FETCH_BOOK);
+                getActivity().startService(bookIntent);
+                AddBook.this.restartLoader();
+
+            }
+            else if(resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(getActivity(), "Camera not available", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
