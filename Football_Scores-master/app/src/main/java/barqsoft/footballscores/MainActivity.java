@@ -9,6 +9,7 @@ import android.view.MenuItem;
 
 public class MainActivity extends ActionBarActivity
 {
+    public static final String MATCH_DETAIL = "com.example.android.mainactivity.MATCH_DETAIL";
     public static int selected_match_id;
     public static int current_fragment = 2;
     public static String LOG_TAG = "MainActivity";
@@ -21,8 +22,14 @@ public class MainActivity extends ActionBarActivity
         Log.d(LOG_TAG, "Reached MainActivity onCreate");
         if (savedInstanceState == null) {
             my_main = new PagerFragment();
+
+            if (getIntent().hasExtra(MATCH_DETAIL)) {
+                double matchId = getIntent().getDoubleExtra(MATCH_DETAIL, 0);
+                selected_match_id = (int) matchId;
+            }
+
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, my_main)
+                    .replace(R.id.container, my_main)
                     .commit();
         }
     }
