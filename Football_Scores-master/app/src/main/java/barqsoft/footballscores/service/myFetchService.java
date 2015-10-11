@@ -52,10 +52,8 @@ public class myFetchService extends IntentService
                     .getApplicationContext());
             int[] appAllWidgets = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
 
-
-
         } else {
-            Log.d(LOG_TAG, "onHandleIntent");
+
             getData("n2");
             getData("p2");
         }
@@ -108,7 +106,7 @@ public class myFetchService extends IntentService
         }
         catch (Exception e)
         {
-            Log.e(LOG_TAG,"Exception here" + e.getMessage());
+            Log.e(LOG_TAG,"Exception here: " + e.getMessage());
         }
         finally {
             if(m_connection != null)
@@ -248,7 +246,6 @@ public class myFetchService extends IntentService
                     }
                     catch (Exception e)
                     {
-                        Log.d(LOG_TAG, "error here!");
                         Log.e(LOG_TAG,e.getMessage());
                     }
 

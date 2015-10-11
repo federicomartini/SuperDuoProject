@@ -1,6 +1,8 @@
 package barqsoft.footballscores;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.pdf.PdfDocument;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -24,12 +26,51 @@ public class PagerFragment extends Fragment
     public static final int NUM_PAGES = 5;
     public ViewPager mPagerHandler;
     private myPageAdapter mPagerAdapter;
-    private MainScreenFragment[] viewFragments = new MainScreenFragment[5];
+    private MainScreenFragment[] viewFragments;
+    private int mCurrentPage = 2;
     public static final String LOG_TAG = "PagerFragment";
+    public PagerFragmentCallback mCallback;
+    private ViewPager.OnPageChangeListener pageChangeListener = new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            Log.d(LOG_TAG, "Position changed");
+            mCallback.onPositionChange(position);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+    };
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        try {
+            mCallback = (PagerFragmentCallback) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement PagerFragmentCallback");
+        }
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //setRetainInstance(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
+        viewFragments = new MainScreenFragment[NUM_PAGES];
         View rootView = inflater.inflate(R.layout.pager_fragment, container, false);
         mPagerHandler = (ViewPager) rootView.findViewById(R.id.pager);
         mPagerAdapter = new myPageAdapter(getChildFragmentManager());
@@ -41,12 +82,32 @@ public class PagerFragment extends Fragment
 
             viewFragments[i] = new MainScreenFragment();
             viewFragments[i].setFragmentDate(mformat.format(fragmentdate));
-
         }
         mPagerHandler.setAdapter(mPagerAdapter);
+        mPagerHandler.setOnPageChangeListener(pageChangeListener);
+
+        if (savedInstanceState != null) {
+
+        }
+
         mPagerHandler.setCurrentItem(MainActivity.current_fragment);
+
         return rootView;
     }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        mPagerHandler.setCurrentItem(MainActivity.current_fragment);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallback = null;
+    }
+
+
     private class myPageAdapter extends FragmentStatePagerAdapter
     {
         public static final String LOG_TAG = "myPageAdapter";
@@ -99,5 +160,9 @@ public class PagerFragment extends Fragment
                 return dayFormat.format(dateInMillis);
             }
         }
+    }
+
+    public interface PagerFragmentCallback {
+        public void onPositionChange(int position);
     }
 }

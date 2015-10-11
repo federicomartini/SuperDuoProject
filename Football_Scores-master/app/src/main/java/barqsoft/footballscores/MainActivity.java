@@ -1,5 +1,6 @@
 package barqsoft.footballscores;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -7,7 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends ActionBarActivity implements PagerFragment.PagerFragmentCallback
 {
     public static final String MATCH_DETAIL = "com.example.android.mainactivity.MATCH_DETAIL";
     public static int selected_match_id;
@@ -15,23 +16,65 @@ public class MainActivity extends ActionBarActivity
     public static String LOG_TAG = "MainActivity";
     private final String save_tag = "Save Test";
     private PagerFragment my_main;
+    private boolean mStartFragment = false;
+    private static MainActivity mInstance;
+    private boolean mWasCalled = false;
+
+    public MainActivity() {
+        mInstance = this;
+    }
+
+    @Override
+    public void onPositionChange(int position) {
+        current_fragment = position;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(LOG_TAG, "Reached MainActivity onCreate");
-        if (savedInstanceState == null) {
-            my_main = new PagerFragment();
 
-            if (getIntent().hasExtra(MATCH_DETAIL)) {
-                double matchId = getIntent().getDoubleExtra(MATCH_DETAIL, 0);
-                selected_match_id = (int) matchId;
+        if (!mInstance.mWasCalled) {
+            if (savedInstanceState == null) {
+                my_main = new PagerFragment();
+
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.container, my_main)
+                        .commit();
+
+            } else {
+                current_fragment = savedInstanceState.getInt("Pager_Current");
+                selected_match_id = savedInstanceState.getInt("Selected_match");
+                my_main = (PagerFragment) getSupportFragmentManager().getFragment(savedInstanceState, "my_main");
             }
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, my_main)
-                    .commit();
+            mInstance.mWasCalled = true;
         }
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Intent intent = getIntent();
+
+        if (intent.hasExtra(MATCH_DETAIL)) {
+            double matchId = intent.getDoubleExtra(MATCH_DETAIL, 0);
+            current_fragment = 2;
+            selected_match_id = (int) matchId;
+            intent.removeExtra(MATCH_DETAIL);
+
+            getSupportFragmentManager().beginTransaction()
+                    .detach(my_main)
+                    .attach(my_main)
+                    .commitAllowingStateLoss();
+        }
+
     }
 
 
@@ -68,8 +111,23 @@ public class MainActivity extends ActionBarActivity
         Log.v(save_tag,"selected id: "+selected_match_id);
         outState.putInt("Pager_Current",my_main.mPagerHandler.getCurrentItem());
         outState.putInt("Selected_match",selected_match_id);
-        getSupportFragmentManager().putFragment(outState,"my_main",my_main);
+        getSupportFragmentManager().putFragment(outState, "my_main", my_main);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -83,4 +141,5 @@ public class MainActivity extends ActionBarActivity
         my_main = (PagerFragment) getSupportFragmentManager().getFragment(savedInstanceState,"my_main");
         super.onRestoreInstanceState(savedInstanceState);
     }
+
 }

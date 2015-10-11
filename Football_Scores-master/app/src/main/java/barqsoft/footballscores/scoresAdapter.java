@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
@@ -89,6 +91,14 @@ public class scoresAdapter extends CursorAdapter
         }
 
     }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        LinearLayout myView = (LinearLayout) super.getView(position, convertView, parent);
+        myView.setContentDescription(mContext.getString(R.string.match_contentdescriptor) + " " + position);
+        return myView;
+    }
+
     public Intent createShareForecastIntent(String ShareText) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
