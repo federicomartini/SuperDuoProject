@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.text.format.Time;
 import android.util.Log;
@@ -27,13 +28,11 @@ public class PagerFragment extends Fragment
     public ViewPager mPagerHandler;
     private myPageAdapter mPagerAdapter;
     private MainScreenFragment[] viewFragments;
-    private int mCurrentPage = 2;
-    public static final String LOG_TAG = "PagerFragment";
+    public static final String LOG_TAG = PagerFragment.class.getName();
     public PagerFragmentCallback mCallback;
     private ViewPager.OnPageChangeListener pageChangeListener = new ViewPager.OnPageChangeListener() {
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
         }
 
         @Override
@@ -78,18 +77,20 @@ public class PagerFragment extends Fragment
         for (int i = 0;i < NUM_PAGES;i++)
         {
             Date fragmentdate = new Date(System.currentTimeMillis()+((i-2)*86400000));
-            SimpleDateFormat mformat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat mformat = new SimpleDateFormat(getString(R.string.date_format));
 
-            viewFragments[i] = new MainScreenFragment();
-            viewFragments[i].setFragmentDate(mformat.format(fragmentdate));
+            if (ViewCompat.getLayoutDirection(rootView) == ViewCompat.LAYOUT_DIRECTION_RTL) {
+                viewFragments[NUM_PAGES-i-1] = new MainScreenFragment();
+                viewFragments[NUM_PAGES-i-1].setFragmentDate(mformat.format(fragmentdate));
+            } else {
+                viewFragments[i] = new MainScreenFragment();
+                viewFragments[i].setFragmentDate(mformat.format(fragmentdate));
+            }
+
         }
+
         mPagerHandler.setAdapter(mPagerAdapter);
         mPagerHandler.setOnPageChangeListener(pageChangeListener);
-
-        if (savedInstanceState != null) {
-
-        }
-
         mPagerHandler.setCurrentItem(MainActivity.current_fragment);
 
         return rootView;
@@ -110,7 +111,7 @@ public class PagerFragment extends Fragment
 
     private class myPageAdapter extends FragmentStatePagerAdapter
     {
-        public static final String LOG_TAG = "myPageAdapter";
+        public final String LOG_TAG = myPageAdapter.class.getName();
 
         @Override
         public Fragment getItem(int i)
@@ -156,13 +157,13 @@ public class PagerFragment extends Fragment
                 Time time = new Time();
                 time.setToNow();
                 // Otherwise, the format is just the day of the week (e.g "Wednesday".
-                SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE");
+                SimpleDateFormat dayFormat = new SimpleDateFormat(context.getString(R.string.day_format_pagerfragment));
                 return dayFormat.format(dateInMillis);
             }
         }
     }
 
     public interface PagerFragmentCallback {
-        public void onPositionChange(int position);
+        void onPositionChange(int position);
     }
 }

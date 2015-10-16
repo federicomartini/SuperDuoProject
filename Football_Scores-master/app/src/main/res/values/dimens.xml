@@ -7,4 +7,9 @@
     <dimen name="TeamNames">17sp</dimen>
     <dimen name="Score">30sp</dimen>
     <dimen name="League">15sp</dimen>
+
+    <!-- Widget dimensions -->
+    <dimen name="TeamNamesWidget">10sp</dimen>
+    <dimen name="ScoreWidget">18sp</dimen>
+    <dimen name="DataWidget">12sp</dimen>
 </resources>

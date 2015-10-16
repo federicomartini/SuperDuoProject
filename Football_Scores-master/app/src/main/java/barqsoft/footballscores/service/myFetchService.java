@@ -3,6 +3,7 @@ package barqsoft.footballscores.service;
 import android.app.IntentService;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -36,27 +37,27 @@ import barqsoft.footballscores.widget.ScoresWidgetProvider;
  */
 public class myFetchService extends IntentService
 {
-    public static final String LOG_TAG = "myFetchService";
+    public static final String LOG_TAG = myFetchService.class.getName();
     String[] mDate;
 
     public myFetchService()
     {
-        super("myFetchService");
+        super(myFetchService.class.getName());
     }
 
     @Override
     protected void onHandleIntent(Intent intent)
     {
-        if(intent.hasExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS)) {
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this
-                    .getApplicationContext());
-            int[] appAllWidgets = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+        getData(getResources().getString(R.string.prev_days_matches_command_myfetchservice));
+        getData(getResources().getString(R.string.next_days_matches_command_myfetchservice));
 
-        } else {
-
-            getData("n2");
-            getData("p2");
-        }
+        Intent updateIntent = new Intent(this, ScoresWidgetProvider.class);
+        updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        // Use an array and EXTRA_APPWIDGET_IDS instead of AppWidgetManager.EXTRA_APPWIDGET_ID,
+        // since it seems the onUpdate() is only fired on that:
+        int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), ScoresWidgetProvider.class));
+        updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+        sendBroadcast(updateIntent);
 
         return;
     }
@@ -64,8 +65,8 @@ public class myFetchService extends IntentService
     private void getData (String timeFrame)
     {
         //Creating fetch URL
-        final String BASE_URL = "http://api.football-data.org/alpha/fixtures"; //Base URL
-        final String QUERY_TIME_FRAME = "timeFrame"; //Time Frame parameter to determine days
+        final String BASE_URL = getResources().getString(R.string.base_url_myfetchservice) + "/" + getString(R.string.fixtures_key_myfetchservice); //Base URL
+        final String QUERY_TIME_FRAME = getResources().getString(R.string.query_timeframe_myfetchservice); //Time Frame parameter to determine days
         //final String QUERY_MATCH_DAY = "matchday";
 
         Uri fetch_build = Uri.parse(BASE_URL).buildUpon().
@@ -78,8 +79,9 @@ public class myFetchService extends IntentService
         try {
             URL fetch = new URL(fetch_build.toString());
             m_connection = (HttpURLConnection) fetch.openConnection();
-            m_connection.setRequestMethod("GET");
-            m_connection.addRequestProperty("X-Auth-Token",getString(R.string.api_key));
+            m_connection.setRequestMethod(getResources().getString(R.string.http_get_command_myfetchservice));
+            m_connection.addRequestProperty(getResources().getString(R.string.auth_token_command_myfetchservice)
+                    ,getString(R.string.api_key));
             m_connection.connect();
 
             // Read the input stream into a String
@@ -120,14 +122,14 @@ public class myFetchService extends IntentService
                 }
                 catch (IOException e)
                 {
-                    Log.e(LOG_TAG,"Error Closing Stream");
+                    Log.e(LOG_TAG, "Error Closing Stream");
                 }
             }
         }
         try {
             if (JSON_data != null) {
                 //This bit is to check if the data contains any matches. If not, we call processJson on the dummy data
-                JSONArray matches = new JSONObject(JSON_data).getJSONArray("fixtures");
+                JSONArray matches = new JSONObject(JSON_data).getJSONArray(getResources().getString(R.string.fixtures_key_myfetchservice));
                 if (matches.length() == 0) {
                     //if there is no data, call the function on dummy data
                     //this is expected behavior during the off season.
@@ -152,33 +154,33 @@ public class myFetchService extends IntentService
         //JSON data
         // This set of league codes is for the 2015/2016 season. In fall of 2016, they will need to
         // be updated. Feel free to use the codes
-        final String BUNDESLIGA1 = "394";
-        final String BUNDESLIGA2 = "395";
-        final String LIGUE1 = "396";
-        final String LIGUE2 = "397";
-        final String PREMIER_LEAGUE = "398";
-        final String PRIMERA_DIVISION = "399";
-        final String SEGUNDA_DIVISION = "400";
-        final String SERIE_A = "401";
-        final String PRIMERA_LIGA = "402";
-        final String Bundesliga3 = "403";
-        final String EREDIVISIE = "404";
-        final String DUMMYLEAGUE = "357";
+        final String BUNDESLIGA1 = getString(R.string.bundensliga1_code_myfetchservice);
+        final String BUNDESLIGA2 = getString(R.string.bundensliga2_code_myfetchservice);
+        final String LIGUE1 = getString(R.string.ligue1_code_myfetchservice);
+        final String LIGUE2 = getString(R.string.ligue2_code_myfetchservice);
+        final String PREMIER_LEAGUE = getString(R.string.premierleague_code_myfetchservice);
+        final String PRIMERA_DIVISION = getString(R.string.primeradivision_code_myfetchservice);
+        final String SEGUNDA_DIVISION = getString(R.string.segundadivision_code_myfetchservice);
+        final String SERIE_A = getString(R.string.seriea_code_myfetchservice);
+        final String PRIMERA_LIGA = getString(R.string.primeraliga_code_myfetchservice);
+        final String BUNDESLIGA3 = getString(R.string.bundesliga3_code_myfetchservice);
+        final String EREDIVISIE = getString(R.string.eredivisie_code_myfetchservice);
+        final String DUMMYLEAGUE = getString(R.string.dummyleague_code_myfetchservice);
 
 
-        final String SEASON_LINK = "http://api.football-data.org/alpha/soccerseasons/";
-        final String MATCH_LINK = "http://api.football-data.org/alpha/fixtures/";
-        final String FIXTURES = "fixtures";
-        final String LINKS = "_links";
-        final String SOCCER_SEASON = "soccerseason";
-        final String SELF = "self";
-        final String MATCH_DATE = "date";
-        final String HOME_TEAM = "homeTeamName";
-        final String AWAY_TEAM = "awayTeamName";
-        final String RESULT = "result";
-        final String HOME_GOALS = "goalsHomeTeam";
-        final String AWAY_GOALS = "goalsAwayTeam";
-        final String MATCH_DAY = "matchday";
+        final String SEASON_LINK = getResources().getString(R.string.base_url_myfetchservice) + "/" + getString(R.string.soccerseason_key_myfetchservice) + "/";
+        final String MATCH_LINK = getResources().getString(R.string.base_url_myfetchservice) + "/" + getString(R.string.fixtures_key_myfetchservice) + "/";
+        final String FIXTURES = getString(R.string.fixtures_key_myfetchservice);
+        final String LINKS = getString(R.string.links_key_myfetchservice);
+        final String SOCCER_SEASON = getString(R.string.soccerseason_key_myfetchservice);
+        final String SELF = getString(R.string.self_key_myfetchservice);
+        final String MATCH_DATE = getString(R.string.date_key_myfetchservice);
+        final String HOME_TEAM = getString(R.string.homeTeamName_key_myfetchservice);
+        final String AWAY_TEAM = getString(R.string.awayTeamName_key_myfetchservice);
+        final String RESULT = getString(R.string.result_key_myfetchservice);
+        final String HOME_GOALS = getString(R.string.goalsHomeTeam_key_myfetchservice);
+        final String AWAY_GOALS = getString(R.string.goalsAwayTeam_key_myfetchservice);;
+        final String MATCH_DAY = getString(R.string.matchday_key_myfetchservice);
 
         //Match data
         String League = null;
@@ -209,15 +211,22 @@ public class myFetchService extends IntentService
                 //add leagues here in order to have them be added to the DB.
                 // If you are finding no data in the app, check that this contains all the leagues.
                 // If it doesn't, that can cause an empty DB, bypassing the dummy data routine.
-                if(     League.equals(PREMIER_LEAGUE)      ||
-                        League.equals(SERIE_A)             ||
-                        League.equals(BUNDESLIGA1)         ||
-                        League.equals(BUNDESLIGA2)         ||
-                        League.equals(PRIMERA_DIVISION)    ||
-                        League.equals(DUMMYLEAGUE)          )
+                if(     League.equals(PREMIER_LEAGUE)       ||
+                        League.equals(SERIE_A)              ||
+                        League.equals(BUNDESLIGA1)          ||
+                        League.equals(BUNDESLIGA2)          ||
+                        League.equals(BUNDESLIGA3)          ||
+                        League.equals(PRIMERA_DIVISION)     ||
+                        League.equals(SEGUNDA_DIVISION)     ||
+                        League.equals(LIGUE1)               ||
+                        League.equals(LIGUE2)               ||
+                        League.equals(PRIMERA_LIGA)         ||
+                        League.equals(EREDIVISIE)
+                        //League.equals(DUMMYLEAGUE)
+                                                            )
                 {
                     match_id = match_data.getJSONObject(LINKS).getJSONObject(SELF).
-                            getString("href");
+                            getString(getString(R.string.match_id_json_key_myfetchservice));
                     match_id = match_id.replace(MATCH_LINK, "");
                     if(!isReal){
                         //This if statement changes the match ID of the dummy data so that it all goes into the database
@@ -225,22 +234,28 @@ public class myFetchService extends IntentService
                     }
 
                     mDate = match_data.getString(MATCH_DATE);
-                    mTime = mDate.substring(mDate.indexOf("T") + 1, mDate.indexOf("Z"));
-                    mDate = mDate.substring(0,mDate.indexOf("T"));
-                    SimpleDateFormat match_date = new SimpleDateFormat("yyyy-MM-ddHH:mm:ss");
-                    match_date.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    mTime = mDate.substring(mDate.indexOf(getString(R.string.begin_match_time_json_key)) + 1, mDate.indexOf(getString(R.string.end_match_time_json_key)));
+                    mDate = mDate.substring(0,mDate.indexOf(getString(R.string.begin_match_time_json_key)));
+                    SimpleDateFormat match_date = new SimpleDateFormat(getString(R.string.date_time_with_seconds_format));
+                    match_date.setTimeZone(TimeZone.getTimeZone(getString(R.string.utc_key_myfetcservice)));
                     try {
                         Date parseddate = match_date.parse(mDate+mTime);
-                        SimpleDateFormat new_date = new SimpleDateFormat("yyyy-MM-dd:HH:mm");
+                        SimpleDateFormat new_date = new SimpleDateFormat(getString(R.string.date_time_format));
                         new_date.setTimeZone(TimeZone.getDefault());
                         mDate = new_date.format(parseddate);
-                        mTime = mDate.substring(mDate.indexOf(":") + 1);
-                        mDate = mDate.substring(0,mDate.indexOf(":"));
+                        mTime = mDate.substring(mDate.indexOf(getString(R.string.date_time_format_divider)) + 1);
+                        mDate = mDate.substring(0,mDate.indexOf(getString(R.string.date_time_format_divider)));
 
                         if(!isReal){
+                            Date fragmentdate;
+
+                            if (i > 4) {
+                                fragmentdate = new Date(System.currentTimeMillis());
+                            } else {
+                                fragmentdate = new Date(System.currentTimeMillis()+((i-2)*86400000));
+                            }
                             //This if statement changes the dummy data's date to match our current date range.
-                            Date fragmentdate = new Date(System.currentTimeMillis()+((i-2)*86400000));
-                            SimpleDateFormat mformat = new SimpleDateFormat("yyyy-MM-dd");
+                            SimpleDateFormat mformat = new SimpleDateFormat(getString(R.string.date_time_format));
                             mDate=mformat.format(fragmentdate);
                         }
                     }

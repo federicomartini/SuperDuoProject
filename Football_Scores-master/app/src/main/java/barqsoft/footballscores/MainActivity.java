@@ -13,7 +13,7 @@ public class MainActivity extends ActionBarActivity implements PagerFragment.Pag
     public static final String MATCH_DETAIL = "com.example.android.mainactivity.MATCH_DETAIL";
     public static int selected_match_id;
     public static int current_fragment = 2;
-    public static String LOG_TAG = "MainActivity";
+    public static String LOG_TAG = MainActivity.class.getName();
     private final String save_tag = "Save Test";
     private PagerFragment my_main;
     private boolean mStartFragment = false;
