@@ -168,7 +168,7 @@ public class myFetchService extends IntentService
         final String DUMMYLEAGUE = getString(R.string.dummyleague_code_myfetchservice);
 
 
-        final String SEASON_LINK = getResources().getString(R.string.base_url_myfetchservice) + "/" + getString(R.string.soccerseason_key_myfetchservice) + "/";
+        final String SEASON_LINK = getResources().getString(R.string.base_url_myfetchservice) + "/" + getString(R.string.soccerseason_link_key_myfetchservice) + "/";
         final String MATCH_LINK = getResources().getString(R.string.base_url_myfetchservice) + "/" + getString(R.string.fixtures_key_myfetchservice) + "/";
         final String FIXTURES = getString(R.string.fixtures_key_myfetchservice);
         final String LINKS = getString(R.string.links_key_myfetchservice);
@@ -205,7 +205,7 @@ public class myFetchService extends IntentService
 
                 JSONObject match_data = matches.getJSONObject(i);
                 League = match_data.getJSONObject(LINKS).getJSONObject(SOCCER_SEASON).
-                        getString("href");
+                        getString(getString(R.string.match_id_json_key_myfetchservice));
                 League = League.replace(SEASON_LINK,"");
                 //This if statement controls which leagues we're interested in the data from.
                 //add leagues here in order to have them be added to the DB.

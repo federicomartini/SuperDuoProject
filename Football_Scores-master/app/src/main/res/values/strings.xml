@@ -57,6 +57,7 @@
     <string name="query_timeframe_myfetchservice" translatable="false">timeFrame</string>
     <string name="fixtures_key_myfetchservice" translatable="false">fixtures</string>
     <string name="soccerseason_key_myfetchservice" translatable="false">soccerseason</string>
+    <string name="soccerseason_link_key_myfetchservice" translatable="false">soccerseasons</string>
     <string name="links_key_myfetchservice" translatable="false">_links</string>
     <string name="self_key_myfetchservice" translatable="false">self</string>
     <string name="date_key_myfetchservice" translatable="false">date</string>
