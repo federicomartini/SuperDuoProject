@@ -5,7 +5,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="@dimen/activity_vertical_margin">
 
         <TextView
             android:layout_width="wrap_content"
@@ -13,7 +13,7 @@
             android:gravity="center"
             android:layout_weight="1"
             android:text="@string/test_text"
-            android:textColor="@android:color/black"
+            android:textColor="@color/primary_text"
             android:textSize="@dimen/League"
             android:id="@+id/league_textview"/>
 
@@ -24,14 +24,14 @@
             android:layout_weight="1"
             android:text="@string/test_text"
             android:textSize="@dimen/League"
-            android:textColor="@android:color/black"
+            android:textColor="@color/primary_text"
             android:id="@+id/matchday_textview"/>
     </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="@dimen/activity_vertical_margin">
 
         <Button
             android:contentDescription="@string/share_button_contentdescriptor"
@@ -43,10 +43,10 @@
             android:id="@+id/share_button"
             android:drawableLeft="@android:drawable/ic_menu_share"
             android:drawableStart="@android:drawable/ic_menu_share"
-            android:paddingLeft="120dp"
-            android:paddingStart="120dp"
-            android:paddingRight="120dp"
-            android:paddingEnd="120dp"/>
+            android:paddingLeft="@dimen/share_button_padding"
+            android:paddingStart="@dimen/share_button_padding"
+            android:paddingRight="@dimen/share_button_padding"
+            android:paddingEnd="@dimen/share_button_padding"/>
     </FrameLayout>
 
 </LinearLayout>

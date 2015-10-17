@@ -64,7 +64,7 @@ public class ScoresWidgetProvider extends AppWidgetProvider {
 
         String[] mDate = new String[1];
         Date fragmentdate = new Date(System.currentTimeMillis());
-        SimpleDateFormat mformat = new SimpleDateFormat(context.getString(R.string.date_time_format));
+        SimpleDateFormat mformat = new SimpleDateFormat(context.getString(R.string.date_format));
         mDate[0] = mformat.format(fragmentdate);
 
         // Perform this loop procedure for each App Widget that belongs to this provider
@@ -76,10 +76,9 @@ public class ScoresWidgetProvider extends AppWidgetProvider {
             RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.scores_widget_layout);
 
             Intent intentSync = new Intent(context, myFetchService.class);
-            intentSync.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE); //You need to specify the action for the intent. Right now that intent is doing nothing for there is no action to be broadcasted.
-            //intentSync.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+            intentSync.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             intentSync.putExtra(EXTRA_REFRESH, 0);
-            PendingIntent pendingSync = PendingIntent.getService(context, 0, intentSync, 0); //You need to specify a proper flag for the intent. Or else the intent will become deleted.
+            PendingIntent pendingSync = PendingIntent.getService(context, 0, intentSync, 0);
             rv.setOnClickPendingIntent(R.id.reload_icon_view, pendingSync);
 
             rv.setTextViewText(R.id.header_view, context.getString(R.string.widget_header_title));
